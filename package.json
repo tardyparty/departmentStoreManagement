@@ -1,0 +1,23 @@
+{
+  "name": "departmentstoremanagement",
+  "version": "1.0.0",
+  "description": "Department Store Management CLI App to track all aspects of inventory and sales.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tardyparty/departmentStoreManagement.git"
+  },
+  "author": "David Tardy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tardyparty/departmentStoreManagement/issues"
+  },
+  "dependencies": {
+    "inquirer": "^7.0.0",
+    "mysql": "2.17.1"
+  },
+  "homepage": "https://github.com/tardyparty/departmentStoreManagement#readme"
+}
