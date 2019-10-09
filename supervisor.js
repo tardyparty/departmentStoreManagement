@@ -1,5 +1,6 @@
 var inquirer = require('inquirer');
 var mysql = require('mysql');
+var table = require('console.table');
 
 
 
@@ -13,5 +14,55 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
     if (err) throw err;
-    console.log("Connected as ID " + connection.threadId);
+    
+    menu();
 })
+
+function menu() {
+
+    inquirer
+        .prompt([
+            {
+                type: "list",
+                name: "input",
+                message: "Please Select: ",
+                choices: [
+                    "View Sales by Department", 
+                    "Create New Department",
+                "Quit"
+                ]
+            }
+        ])
+        .then(function(answers) {
+
+            switch(answers.input) {
+
+                case "View Sales by Department":
+                    viewSales();
+                    break
+
+                case "Create New Department":
+                    newDepartment();
+                    break
+
+                case "Quit":
+                    quit();
+
+            }
+        }) 
+}
+
+
+function quit() {
+    connection.end();
+}
+
+
+function viewSales() {
+
+}
+
+
+function newDepartment() {
+
+}

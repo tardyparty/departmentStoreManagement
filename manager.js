@@ -1,10 +1,12 @@
 // requirements
 var inquirer = require('inquirer');
 var mysql = require('mysql');
+var table = require('console.table');
 
 // global variables
 var item;
 var num;
+var newQuantity;
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -32,7 +34,8 @@ function showMenu() {
                 "View Products",
                 "View Low Inventory",
                 "Add to Inventory",
-                "Add New Product"
+                "Add New Product",
+                "Quit"
             ]
         }
     ]).then(function(answers) {
@@ -53,28 +56,47 @@ function showMenu() {
 
             case "Add New Product":
                 addProduct();
+                break;
+
+            case "Quit":
+                quit();
         }
     })
+}
+
+
+function quit() {
+
+    connection.end();
 }
 
 
 // view all products
 function viewProducts() {
 
+    console.log("\n***** Showing all Products in Inventory *****\n");
+
     connection.query("SELECT * FROM products", function(err, res) {
         if (err) throw err;
 
+        var values = [];
+
         for (var i = 0; i < res.length; i++) {
 
-            var products = res[i];
+            var thisValue = [
+                res[i].item_id, 
+                res[i].product_name, 
+                res[i].department_name, 
+                res[i].price, 
+                res[i].stock_quantity
+            ];
 
-            console.log(
-                "\n" + "Item_id: | " + products.item_id,
-                "| Product_name: | " + products.product_name, 
-                "| Price: | $" + products.price, 
-                "| Stock_Quantity: | " + products.stock_quantity + " |"
-                );
+            values.push(thisValue);
         }
+
+        console.table(["Item ID", "Product Name", "Department Name", "Price", "Stock Quantity"], values);
+
+        showMenu();
     })
 }
 
@@ -86,36 +108,42 @@ function lowInventory() {
 
         if (err) throw err;
 
-        var lowIventoryItems = [];
+        var lowInventoryItems = [];
 
         for (var i = 0; i < res.length; i++) {
 
             if (res[i].stock_quantity < 20) {
-                lowIventoryItems.push(res[i])
+
+                var thisValue = [
+                    res[i].item_id, 
+                    res[i].product_name, 
+                    res[i].department_name, 
+                    res[i].price, 
+                    res[i].stock_quantity
+                ];
+
+                lowInventoryItems.push(thisValue);
             }
         }
 
-        console.log("\n" + "********** Low Inventory **********" + "\n");
+        console.log("\n" + "***** Inventory less than 20 units *****" + "\n");
 
-        for (var i = 0; i < lowIventoryItems.length; i++) {
+        console.table([
+            "Item ID", 
+            "Product Name", 
+            "Department Name", 
+            "Price", "Stock Quantity"
+            ], 
+            lowInventoryItems
+        );
 
-            var products = lowIventoryItems[i];
-
-            console.log(
-                "\n" + "Item_id: | " + products.item_id,
-                "| Product_name: | " + products.product_name, 
-                "| Price: | $" + products.price, 
-                "| Stock_Quantity: | " + products.stock_quantity + " |"
-                );
-        }
+        showMenu();
     })
 }
 
 
 // add to inventory
 function addInventory() {
-
-    var newQuantity;
 
     // asks questions and saves answers
     inquirer.prompt([
@@ -141,13 +169,15 @@ function addInventory() {
             newQuantity = res[0].stock_quantity + num;
     
             console.log("newQuantity: " + newQuantity);
-        })
+        });
     
         connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?",
         [newQuantity, item],
         function(err) {
             if (err) throw err;
         });
+
+        showMenu();
     })
 }
 
@@ -186,12 +216,21 @@ function addProduct() {
         price = answers.price;
         quantity = answers.quantity;
 
-        connection.query("INSERT INTO products VALUES(NULL, ?, ?, ?, ?)",
-        [name, department, price, quantity],
+        connection.query("INSERT INTO products SET ?",
+        {
+            item_id: null,
+            product_name: name,
+            department_name: department,
+            price: price,
+            stock_quantity: quantity
+        },
         function(err) {
             if (err) throw err;
-        });
 
-        console.log(name + " added to database.");
+            console.log(name + " added to database.");
+
+            showMenu();
+        });
     });
+
 }
