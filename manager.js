@@ -16,9 +16,9 @@ var connection = mysql.createConnection({
     database: "bamazon",
 });
 
-connection.connect(function(err) {
+connection.connect(function (err) {
     if (err) throw err;
-    
+
     showMenu();
 })
 
@@ -38,15 +38,15 @@ function showMenu() {
                 "Quit"
             ]
         }
-    ]).then(function(answers) {
+    ]).then(function (answers) {
 
         // perform proper function based on response
-        switch(answers.action) {
+        switch (answers.action) {
             case "View Products":
                 viewProducts();
                 break;
-            
-            case "View Low Inventory": 
+
+            case "View Low Inventory":
                 lowInventory();
                 break;
 
@@ -76,7 +76,7 @@ function viewProducts() {
 
     console.log("\n***** Showing all Products in Inventory *****\n");
 
-    connection.query("SELECT * FROM products", function(err, res) {
+    connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
 
         var values = [];
@@ -84,10 +84,10 @@ function viewProducts() {
         for (var i = 0; i < res.length; i++) {
 
             var thisValue = [
-                res[i].item_id, 
-                res[i].product_name, 
-                res[i].department_name, 
-                res[i].price, 
+                res[i].item_id,
+                res[i].product_name,
+                res[i].department_name,
+                res[i].price,
                 res[i].stock_quantity
             ];
 
@@ -104,7 +104,7 @@ function viewProducts() {
 // view items with low inventory (> 20 units)
 function lowInventory() {
 
-    connection.query("SELECT * FROM products", function(err, res) {
+    connection.query("SELECT * FROM products", function (err, res) {
 
         if (err) throw err;
 
@@ -115,10 +115,10 @@ function lowInventory() {
             if (res[i].stock_quantity < 20) {
 
                 var thisValue = [
-                    res[i].item_id, 
-                    res[i].product_name, 
-                    res[i].department_name, 
-                    res[i].price, 
+                    res[i].item_id,
+                    res[i].product_name,
+                    res[i].department_name,
+                    res[i].price,
                     res[i].stock_quantity
                 ];
 
@@ -129,11 +129,11 @@ function lowInventory() {
         console.log("\n" + "***** Inventory less than 20 units *****" + "\n");
 
         console.table([
-            "Item ID", 
-            "Product Name", 
-            "Department Name", 
+            "Item ID",
+            "Product Name",
+            "Department Name",
             "Price", "Stock Quantity"
-            ], 
+        ],
             lowInventoryItems
         );
 
@@ -157,25 +157,27 @@ function addInventory() {
             name: "num",
             message: "How many units are you adding?",
         }
-    ]).then( function(answers) {
+    ]).then(function (answers) {
 
         // save inputs as global variable
         item = answers.item;
         num = answers.num;
 
-        connection.query("SELECT * FROM products WHERE item_id = ?", [item], function(err, res) {
+        connection.query("SELECT * FROM products WHERE item_id = ?", [item], function (err, res) {
             if (err) throw err;
-    
+
             newQuantity = res[0].stock_quantity + num;
-    
+
             console.log("newQuantity: " + newQuantity);
+
+            connection.query(
+                "UPDATE products SET stock_quantity = ? WHERE item_id = ?",
+                [newQuantity, item],
+                function (err) {
+                    if (err) throw err;
+                });
         });
-    
-        connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?",
-        [newQuantity, item],
-        function(err) {
-            if (err) throw err;
-        });
+
 
         showMenu();
     })
@@ -209,7 +211,7 @@ function addProduct() {
             name: "quantity",
             message: "Please enter the quantity: ",
         }
-    ]).then(function(answers) {
+    ]).then(function (answers) {
 
         name = answers.name;
         department = answers.department;
@@ -217,20 +219,20 @@ function addProduct() {
         quantity = answers.quantity;
 
         connection.query("INSERT INTO products SET ?",
-        {
-            item_id: null,
-            product_name: name,
-            department_name: department,
-            price: price,
-            stock_quantity: quantity
-        },
-        function(err) {
-            if (err) throw err;
+            {
+                item_id: null,
+                product_name: name,
+                department_name: department,
+                price: price,
+                stock_quantity: quantity
+            },
+            function (err) {
+                if (err) throw err;
 
-            console.log(name + " added to database.");
+                console.log(name + " added to database.");
 
-            showMenu();
-        });
+                showMenu();
+            });
     });
 
 }

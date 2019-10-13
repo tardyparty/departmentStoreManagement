@@ -11,12 +11,14 @@ var connection = mysql.createConnection({
     database: "bamazon",
 });
 
-// global variables
+// global variables`
 var products; 
 var item;
 var num;
 var newQuantity;
 var total;
+var currentSales;
+var department;
 
 
 // app logic
@@ -89,14 +91,16 @@ function checkQuantity() {
 
     connection.query("SELECT * FROM products WHERE item_id = ?", [item], function(err, res) {
 
-        total = res[0].price * num
+        total = res[0].price * num;
+        department = res[0].department_name;
+        currentSales = res[0].products_sales;
 
         if (res[0].stock_quantity < num) {
-            console.log("Sorry, we do not have enough " + res[0].product_name + " in stock.");
+            console.log("\nSorry, we do not have enough " + res[0].product_name + " in stock.\nPlease come again.\n");
             connection.end();
         }
         else {
-            console.log("Your total is $" + total + ". Thank you for your purchase.");
+            console.log("\nYour total is $" + total + ". Thank you for your purchase.\n");
 
             // save new quantity
             newQuantity = res[0].stock_quantity - num;
@@ -104,25 +108,36 @@ function checkQuantity() {
             updateSales();
         }
     })
-
-    updateSales();
-
-    // connection.end();
 }
 
 
+// check if ther is enough in stock and update stock or deny
 function updateInventory() {
 
     connection.query("UPDATE products SET stock_quantity = ? WHERE item_id = ?", [newQuantity, item]);
 }
 
+
+// add total of sale to product sales
 function updateSales() {
-    console.log("Total: " + total);
+
+    var totalSales = total + currentSales;
+
+    // update products table
     connection.query(
         "UPDATE products SET products_sales = ? WHERE item_id = ?",
-        [total, item],
+        [totalSales, item],
         function(err) {
             if (err) throw err;
         });
-    // connection.end();
+
+    // update department table
+    connection.query(
+        "UPDATE departments SET product_sales = ? WHERE department_name = ?",
+        [totalSales, department],
+        function(err) {
+            if (err) throw err;
+        });
+        
+    connection.end();
 }
