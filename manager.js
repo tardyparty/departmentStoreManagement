@@ -145,42 +145,64 @@ function lowInventory() {
 // add to inventory
 function addInventory() {
 
-    // asks questions and saves answers
-    inquirer.prompt([
-        {
-            type: "number",
-            name: "item",
-            message: "What is the ID of the item to add inventory to?",
-        },
-        {
-            type: "number",
-            name: "num",
-            message: "How many units are you adding?",
+    connection.query("SELECT * FROM products", function (err, res) {
+        if (err) throw err;
+
+        var values = [];
+
+        for (var i = 0; i < res.length; i++) {
+
+            var thisValue = [
+                res[i].item_id,
+                res[i].product_name,
+                res[i].department_name,
+                res[i].price,
+                res[i].stock_quantity
+            ];
+
+            values.push(thisValue);
         }
-    ]).then(function (answers) {
 
-        // save inputs as global variable
-        item = answers.item;
-        num = answers.num;
+        console.log('\n');
+        console.table(["Item ID", "Product Name", "Department Name", "Price", "Stock Quantity"], values);
+        console.log('\n');
 
-        connection.query("SELECT * FROM products WHERE item_id = ?", [item], function (err, res) {
-            if (err) throw err;
+        // asks questions and saves answers
+        inquirer.prompt([
+            {
+                type: "number",
+                name: "item",
+                message: "What is the ID of the item to add inventory to?",
+            },
+            {
+                type: "number",
+                name: "num",
+                message: "How many units are you adding?",
+            }
+        ]).then(function (answers) {
 
-            newQuantity = res[0].stock_quantity + num;
+            // save inputs as global variable
+            item = answers.item;
+            num = answers.num;
 
-            console.log("newQuantity: " + newQuantity);
+            connection.query("SELECT * FROM products WHERE item_id = ?", [item], function (err, res) {
+                if (err) throw err;
 
-            connection.query(
-                "UPDATE products SET stock_quantity = ? WHERE item_id = ?",
-                [newQuantity, item],
-                function (err) {
-                    if (err) throw err;
-                });
+                newQuantity = res[0].stock_quantity + num;
+
+                console.log("\nThe updated quantity of " + res[0].product_name + " is " + newQuantity + '\n');
+
+                connection.query(
+                    "UPDATE products SET stock_quantity = ? WHERE item_id = ?",
+                    [newQuantity, item],
+                    function (err) {
+                        if (err) throw err;
+                    });
+
+                    showMenu();
+            });  
         });
-
-
-        showMenu();
-    })
+    });
 }
 
 
@@ -229,7 +251,7 @@ function addProduct() {
             function (err) {
                 if (err) throw err;
 
-                console.log(name + " added to database.");
+                console.log('\n' + name + " added to database.\n");
 
                 showMenu();
             });
