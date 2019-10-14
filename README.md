@@ -1,2 +1,9 @@
 # departmentStoreManagement
-Department Store Management CLI App to track all aspects of inventory and sales.
+3 CLI Apps for customer purchases and 2 levels of management.
+
+## customer.js
+![](customer.gif)
+
+## manager.js
+
+## supervisor.js
